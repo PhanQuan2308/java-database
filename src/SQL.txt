@@ -1,0 +1,197 @@
+* Thu tu thuc hien cac cau lệnh truy vấn: - FROM: Xác định các bảng nào được sử dụng trong truy vấn.
+                                            JOIN: Kết hợp dữ liệu từ nhiều bảng (nếu có phép nối - JOIN).
+                                            WHERE: Lọc các bản ghi dựa trên điều kiện.
+                                            GROUP BY: Gom nhóm các bản ghi dựa trên một hoặc nhiều cột.
+                                            HAVING: Lọc kết quả sau khi GROUP BY (tương tự như WHERE, nhưng dùng cho nhóm dữ liệu).
+                                            SELECT: Chọn các cột cần lấy dữ liệu.
+                                            DISTINCT: Loại bỏ các bản ghi trùng lặp trong kết quả.
+                                            ORDER BY: Sắp xếp kết quả dựa trên một hoặc nhiều cột.
+                                            LIMIT/OFFSET: Giới hạn số lượng bản ghi trả về và bỏ qua các bản ghi đầu tiên.
+
+                                          - Ví du:
+
+                                                    SELECT d.name, SUM(e.salary) AS total_salary
+                                                    FROM employees e
+                                                    JOIN departments d ON e.department_id = d.id
+                                                    WHERE e.salary > 2000
+                                                    GROUP BY d.name
+                                                    HAVING SUM(e.salary) > 10000
+                                                    ORDER BY total_salary DESC
+                                                    LIMIT 5;
+
+
+=================================================================================================================================
+
+* Cac loai JOIN:  - INNER JOIN:   + Lấy điều kiện khớp trong cả 2 bảng và nếu 1 trong 2 có giá trị null thì loại bỏ
+                                  + SELECT e.name, d.name AS department
+                                    FROM employees e
+                                    INNER JOIN departments d ON e.department_id = d.id;
+
+
+
+                  - LEFT JOIN:    + Tra ve tat ca cac hang tu ben trai cho du khop hay khong khop, neu nhu khong khop gia tri nao ben phai
+                                    thi ben phai se la null, va cac hang ben phai khong khop voi ben trai thi se loai bo.
+                                  + SELECT e.name, d.name AS department
+                                    FROM employees e
+                                    LEFT JOIN departments d ON e.department_id = d.id;
+
+
+                  - RIGHT JOIN:   + tuong tu nhu LEFT JOIN nhung nguoc lai
+                                  + SELECT *
+                                    FROM employees e
+                                    RIGHT JOIN departments d ON e.department_id = d.department_id;
+
+                  - FULL OUTER JOIN: + Kết hợp tất cả các bản ghi khi có sự phù hợp trong một trong hai bảng.
+                                       Nếu không có bản ghi phù hợp trong một bảng, kết quả sẽ chứa giá trị NULL
+
+                                  + SELECT *
+                                    FROM employees e
+                                    FULL OUTER JOIN departments d ON e.department_id = d.department_id;
+=================================================================================================================================
+
+* Subquery:      - Subquery là: + một truy vấn lồng bên trong một truy vấn khác, có thể được sử dụng trong các câu lệnh như SELECT, FROM, WHERE.
+                                + SELECT employee_name
+                                  FROM employees
+                                  WHERE department_id = (SELECT department_id FROM departments WHERE department_name = 'HR');
+
+=================================================================================================================================
+
+* CTE:                          + là một phần của truy vấn tạm thời mà có thể được định nghĩa ở đầu câu truy vấn và có thể được sử dụng nhiều lần trong câu truy vấn chính,
+                                  khac subquery la co the tai su dung duoc
+                                + WITH DepartmentSales AS (
+                                      SELECT department_id, SUM(sales) AS total_sales
+                                      FROM employees
+                                      GROUP BY department_id
+                                  )
+                                  SELECT d.department_name, ds.total_sales
+                                  FROM departments d
+                                  JOIN DepartmentSales ds ON d.department_id = ds.department_id;
+
+=================================================================================================================================
+
+* RANK():        - ROW_NUMBER()
+                   Mô tả: Hàm này gán một số thứ tự duy nhất cho mỗi hàng trong kết quả, bắt đầu từ 1.
+                   Cách hoạt động: Dù các hàng có giá trị giống nhau ở cột xếp hạng, ROW_NUMBER() vẫn gán thứ tự khác nhau cho mỗi hàng.
+
+                   SELECT name, salary, ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num
+                   FROM employees;
+
+
+                 -  RANK()
+                   Mô tả: Hàm này cũng gán thứ tự xếp hạng cho các hàng, nhưng các giá trị giống nhau sẽ có cùng một thứ hạng.
+                   Tuy nhiên, khi có sự trùng lặp, thứ hạng tiếp theo sẽ bị bỏ qua.
+
+                   SELECT name, salary, RANK() OVER (ORDER BY salary DESC) AS rank
+                   FROM employees;
+
+                 - DENSE_RANK()
+                   Mô tả: Tương tự như RANK(), nhưng DENSE_RANK() không bỏ qua thứ hạng tiếp theo khi có sự trùng lặp.
+
+                   SELECT name, salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rank
+                   FROM employees;
+
+=================================================================================================================================
+
+* VIEW():        - Là một bảng ảo, được tạo dựa trên một truy vấn, đơn giản hóa các truy vấn phức tạp, bảo mật dữ liệu và cải thiện khả năng tổ chức.
+                 - Không lưu trữ dữ liệu thực tế, mà nó chỉ lưu trữ câu truy vấn tạo ra nó.
+                   Mỗi khi bạn truy cập VIEW, SQL sẽ thực hiện lại câu truy vấn bên dưới để lấy dữ liệu từ các bảng gốc.
+                 - Đơn giản hóa các câu truy vấn phức tạp bằng cách tạo một lớp trừu tượng. Thay vì phải viết lại các câu truy vấn dài, bạn chỉ cần gọi VIEW
+                 - Khi nao dung: + Can tai su dung, bao mat chi cho nguoi dung thao tac den mot phan cua du lieu trong bang
+
+                 - CREATE VIEW high_salary_employees AS
+                   SELECT name, salary
+                   FROM employees
+                   WHERE salary > 3000;
+
+
+                   truy van ben duoi: SELECT * FROM high_salary_employees;
+
+=================================================================================================================================
+
+* PROCEDURE()    - Là một tập hợp các câu lệnh SQL đã được viết sẵn và lưu trữ trong cơ sở dữ liệu.
+                 - Cho phép bạn đóng gói các thao tác này để tái sử dụng mà không cần phải viết lại câu lệnh SQL nhiều lần.
+                 - Taí su dung de dang, hieu xuat tot, bao mat.
+
+                 **/
+
+                 CREATE PROCEDURE procedure_name (IN param1 datatype, OUT param2 datatype)
+                 BEGIN
+                     -- Các câu lệnh SQL
+                     SELECT column1, column2 INTO param2
+                     FROM table_name
+                     WHERE condition;
+                 END;
+                 IN: Tham số đầu vào.
+                 OUT: Tham số đầu ra, trả về giá trị từ procedure.
+                 INOUT: Tham số có thể vừa là đầu vào vừa là đầu ra.
+
+                 */
+
+                 - Vi du: tham so la IN:
+
+                          CREATE PROCEDURE GetHighSalaryEmployees(IN min_salary DECIMAL(10, 2))
+                          BEGIN
+                              SELECT name, salary
+                              FROM employees
+                              WHERE salary > min_salary;
+                          END;
+                          IN min_salary: Đây là tham số đầu vào, tức là giá trị lương tối thiểu mà bạn muốn lọc nhân viên.
+                          Gọi Stored Procedure:
+                          Để thực thi procedure, bạn sử dụng câu lệnh CALL:
+
+                          sql
+                          Sao chép mã
+                          CALL GetHighSalaryEmployees(3000);
+
+                 - Vi du: tham so là OUT:
+
+                          CREATE PROCEDURE GetDepartmentSalary(IN dept_id INT, OUT total_salary DECIMAL(10, 2))
+                          BEGIN
+                              SELECT SUM(salary) INTO total_salary
+                              FROM employees
+                              WHERE department_id = dept_id;
+                          END;
+                          IN dept_id: Tham số đầu vào là department_id của phòng ban.
+                          OUT total_salary: Tham số đầu ra trả về tổng lương của phòng ban.
+                          Gọi Stored Procedure:
+                          Để gọi procedure và lấy giá trị từ tham số OUT:
+
+                          sql
+                          Sao chép mã
+                          CALL GetDepartmentSalary(1, @total_salary);
+                          SELECT @total_salary;
+
+
+                 - Vi du: tham so la INOUT
+
+                          CREATE PROCEDURE MultiplyByThree(INOUT num INT)
+                          BEGIN
+                              -- Nhân giá trị của num lên 3
+                              SET num = num * 3;
+                          END;
+
+
+                          + cach goi: -- Đặt giá trị ban đầu cho biến @value
+                                      SET @value = 4;
+
+                                      -- Gọi Stored Procedure MultiplyByThree để nhân giá trị @value lên 3
+                                      CALL MultiplyByThree(@value);
+
+                                      -- Kiểm tra giá trị sau khi nhân
+                                      SELECT @value;
+
+                          + giai thich: nghia la tham so dau vao se lay de lam gia, sau do gia tri nay se duoc tinh toan voi logic de tao  nen gia tri dau ra.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
