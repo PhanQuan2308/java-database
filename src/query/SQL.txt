@@ -108,79 +108,100 @@
 
 =================================================================================================================================
 
-* PROCEDURE()    - Là một tập hợp các câu lệnh SQL đã được viết sẵn và lưu trữ trong cơ sở dữ liệu.
-                 - Cho phép bạn đóng gói các thao tác này để tái sử dụng mà không cần phải viết lại câu lệnh SQL nhiều lần.
-                 - Taí su dung de dang, hieu xuat tot, bao mat.
+* PROCEDURE()    - Có 3 loại: + Statement
+                              + PreparedStatement
+                              + CallableStatement
 
-                 **/
+                 - 1. Statement: + Mục đích: Được sử dụng để thực thi các câu lệnh SQL tĩnh (cố định), tức là các câu lệnh SQL không có tham số, su dung truy van truc tiep
 
-                 CREATE PROCEDURE procedure_name (IN param1 datatype, OUT param2 datatype)
-                 BEGIN
-                     -- Các câu lệnh SQL
-                     SELECT column1, column2 INTO param2
-                     FROM table_name
-                     WHERE condition;
-                 END;
-                 IN: Tham số đầu vào.
-                 OUT: Tham số đầu ra, trả về giá trị từ procedure.
-                 INOUT: Tham số có thể vừa là đầu vào vừa là đầu ra.
+                                 + Vi du:
+                                             Statement stmt = conn.createStatement();
+                                             ResultSet rs = stmt.executeQuery("SELECT * FROM employees");
 
-                 */
+                 - 2. PreparedStatement: + Câu truy vấn SQL có thể chứa các dấu hỏi (?) để biểu thị vị trí của tham số.
+                                         + Truyền các tham số vào vị trí của dấu ?.
 
-                 - Vi du: tham so la IN:
+                                 + Vi du:
+                                             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM employees WHERE id = ?");
+                                             pstmt.setInt(1, 123);
+                                             ResultSet rs = pstmt.executeQuery();
+                 - 3. CallableStatement:
 
-                          CREATE PROCEDURE GetHighSalaryEmployees(IN min_salary DECIMAL(10, 2))
-                          BEGIN
-                              SELECT name, salary
-                              FROM employees
-                              WHERE salary > min_salary;
-                          END;
-                          IN min_salary: Đây là tham số đầu vào, tức là giá trị lương tối thiểu mà bạn muốn lọc nhân viên.
-                          Gọi Stored Procedure:
-                          Để thực thi procedure, bạn sử dụng câu lệnh CALL:
+                                  - Được sử dụng để gọi Stored Procedures (các thủ tục được lưu trữ sẵn) trong cơ sở dữ liệu. CallableStatement hỗ trợ cả tham số IN, OUT, và INOUT.
+                                  - Bạn có thể gọi các stored procedure từ cơ sở dữ liệu với các tham số bằng cách sử dụng CallableStatement.
+                                  - Cho phép bạn đóng gói các thao tác này để tái sử dụng mà không cần phải viết lại câu lệnh SQL nhiều lần.
+                                  - Taí su dung de dang, hieu xuat tot, bao mat.
 
-                          sql
-                          Sao chép mã
-                          CALL GetHighSalaryEmployees(3000);
+                                  **/
 
-                 - Vi du: tham so là OUT:
+                                  CREATE PROCEDURE procedure_name (IN param1 datatype, OUT param2 datatype)
+                                  BEGIN
+                                      -- Các câu lệnh SQL
+                                      SELECT column1, column2 INTO param2
+                                      FROM table_name
+                                      WHERE condition;
+                                  END;
+                                  IN: Tham số đầu vào.
+                                  OUT: Tham số đầu ra, trả về giá trị từ procedure.
+                                  INOUT: Tham số có thể vừa là đầu vào vừa là đầu ra.
 
-                          CREATE PROCEDURE GetDepartmentSalary(IN dept_id INT, OUT total_salary DECIMAL(10, 2))
-                          BEGIN
-                              SELECT SUM(salary) INTO total_salary
-                              FROM employees
-                              WHERE department_id = dept_id;
-                          END;
-                          IN dept_id: Tham số đầu vào là department_id của phòng ban.
-                          OUT total_salary: Tham số đầu ra trả về tổng lương của phòng ban.
-                          Gọi Stored Procedure:
-                          Để gọi procedure và lấy giá trị từ tham số OUT:
+                                  */
 
-                          sql
-                          Sao chép mã
-                          CALL GetDepartmentSalary(1, @total_salary);
-                          SELECT @total_salary;
+                                  - Vi du: tham so la IN:
+
+                                           CREATE PROCEDURE GetHighSalaryEmployees(IN min_salary DECIMAL(10, 2))
+                                           BEGIN
+                                               SELECT name, salary
+                                               FROM employees
+                                               WHERE salary > min_salary;
+                                           END;
+                                           IN min_salary: Đây là tham số đầu vào, tức là giá trị lương tối thiểu mà bạn muốn lọc nhân viên.
+                                           Gọi Stored Procedure:
+                                           Để thực thi procedure, bạn sử dụng câu lệnh CALL:
+
+                                           sql
+                                           Sao chép mã
+                                           CALL GetHighSalaryEmployees(3000);
+
+                                  - Vi du: tham so là OUT:
+
+                                           CREATE PROCEDURE GetDepartmentSalary(IN dept_id INT, OUT total_salary DECIMAL(10, 2))
+                                           BEGIN
+                                               SELECT SUM(salary) INTO total_salary
+                                               FROM employees
+                                               WHERE department_id = dept_id;
+                                           END;
+                                           IN dept_id: Tham số đầu vào là department_id của phòng ban.
+                                           OUT total_salary: Tham số đầu ra trả về tổng lương của phòng ban.
+                                           Gọi Stored Procedure:
+                                           Để gọi procedure và lấy giá trị từ tham số OUT:
+
+                                           sql
+                                           Sao chép mã
+                                           CALL GetDepartmentSalary(1, @total_salary);
+                                           SELECT @total_salary;
 
 
-                 - Vi du: tham so la INOUT
+                                  - Vi du: tham so la INOUT
 
-                          CREATE PROCEDURE MultiplyByThree(INOUT num INT)
-                          BEGIN
-                              -- Nhân giá trị của num lên 3
-                              SET num = num * 3;
-                          END;
+                                           CREATE PROCEDURE MultiplyByThree(INOUT num INT)
+                                           BEGIN
+                                               -- Nhân giá trị của num lên 3
+                                               SET num = num * 3;
+                                           END;
 
 
-                          + cach goi: -- Đặt giá trị ban đầu cho biến @value
-                                      SET @value = 4;
+                                           + cach goi: -- Đặt giá trị ban đầu cho biến @value
+                                                       SET @value = 4;
 
-                                      -- Gọi Stored Procedure MultiplyByThree để nhân giá trị @value lên 3
-                                      CALL MultiplyByThree(@value);
+                                                       -- Gọi Stored Procedure MultiplyByThree để nhân giá trị @value lên 3
+                                                       CALL MultiplyByThree(@value);
 
-                                      -- Kiểm tra giá trị sau khi nhân
-                                      SELECT @value;
+                                                       -- Kiểm tra giá trị sau khi nhân
+                                                       SELECT @value;
 
-                          + giai thich: nghia la tham so dau vao se lay de lam gia, sau do gia tri nay se duoc tinh toan voi logic de tao  nen gia tri dau ra.
+                                           + giai thich: nghia la tham so dau vao se lay de lam gia, sau do gia tri nay se duoc tinh toan voi logic de tao  nen gia tri dau ra.
+
 
 
 
