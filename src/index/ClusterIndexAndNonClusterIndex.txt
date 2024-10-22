@@ -1,0 +1,38 @@
+ Clustered index: + Một bảng chỉ có thể có một Clustered Index, nhưng Clustered Index có thể dựa trên nhiều cột, du lieu se duoc sap xep theo thu tu.
+                  + Vi du:  -
+                              CREATE CLUSTERED INDEX IX_Employees_LastName_FirstName
+                              ON Employees (LastName, FirstName);
+
+                            - Giai thich: tại đây tạo clustered index tại LastName và FirstName sau đó nếu như LastName trùng nhau thì nó se sap xep theo FirstName tiep.
+
+==============================================================================================================================
+Noncluster index: + Bảng chỉ mục Non-Clustered không chứa toàn bộ dữ liệu mà chỉ lưu trữ giá trị của cột chỉ mục và sử dụng pointer để liên kết với bản ghi đầy đủ trong bảng chính.
+                  + Khi bạn truy vấn theo cột được chỉ mục, cơ sở dữ liệu sẽ tìm trong bảng chỉ mục Non-Clustered, sau đó sử dụng pointer để lấy dữ liệu đầy đủ từ bảng chính.
+                  + Dong bo hoa
+                  + Vi du:
+                            CREATE NONCLUSTERED INDEX IX_Employees_Salary
+                            ON Employees (Salary);
+
+                            -Giai thich: dung nonclustered index tại cot Salary tiếp theo sau do no se tao bang rieng co ten la Salary trong do cac gia tri duoc sap xep, moi gia tri
+                                         co 1 pointer de khi ma truy vấn thì từ pointer đó sẽ trỏ đến bang Employees de lay ra gia tri
+
+==============================================================================================================================
+
+Gioi han index trong 1 bang: + MySQL    Clustered Index: Mỗi bảng chỉ có thể có một.
+                                        Non-Clustered Index: MySQL không giới hạn số lượng, nhưng cần cân nhắc để tránh ảnh hưởng đến hiệu suất khi ghi dữ liệu.
+
+Danh index dua tren co so: Tan suat truy van, kich thuoc bang
+
+
+
+==============================================================================================================================
+
+Cách de biet 1 cau query da su dung index hay chua: + Sử dụng SET STATISTICS IO ON:
+                                                      Lệnh này cho phép bạn xem thông tin về số lượng thao tác đọc/ghi mà câu truy vấn thực hiện, bao gồm cả việc sử dụng index.
+
+                                                        SET STATISTICS IO ON;
+                                                        SELECT * FROM Employees WHERE LastName = 'Smith';
+
+                                                    + Thêm từ khóa EXPLAIN trước câu truy vấn của bạn để kiểm tra việc sử dụng chỉ mục.
+
+                                                        EXPLAIN SELECT * FROM Employees WHERE LastName = 'Smith';
